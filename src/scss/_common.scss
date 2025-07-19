@@ -239,7 +239,13 @@ a {
       background-color: #eef7f4;
       .spollers__icon {
         &::before {
-          transform: rotate(0deg);
+          height: 2px;
+          background-size:
+            100% 2px,
+            0px 100%;
+          transition:
+            height 0.3s ease 0s,
+            background-size 0.3s ease 0s;
         }
       }
     }
@@ -284,20 +290,19 @@ a {
     align-items: center;
     position: relative;
     border-radius: 50%;
-    &::before,
-    &::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transition: all 0.3s ease 0s;
-      margin: 0px 0px 0px -7px;
-      background-color: #fff;
-      width: 14px;
-      height: 2px;
-    }
     &::before {
-      transform: rotate(-90deg);
+      content: "";
+      width: 14px;
+      height: 14px;
+      background: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff), transparent;
+      background-position: center;
+      background-size:
+        100% 2px,
+        2px 100%;
+      background-repeat: no-repeat;
+      transition:
+        height 0.3s ease 0s,
+        background-size 0.3s ease 0s;
     }
   }
 
