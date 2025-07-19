@@ -1374,6 +1374,7 @@ a {
 }
 @media (max-width: 1250px) {
   .bottom-header__icon {
+    opacity: 0.7;
     cursor: pointer;
     display: -webkit-box;
     display: -ms-flexbox;
@@ -1527,7 +1528,7 @@ a {
   right: 0;
   position: absolute;
   width: 100%;
-  height: 1.9px;
+  height: 1.5px;
   border-radius: 4px;
   background-color: var(--theme-color-text-common);
 }
@@ -1541,7 +1542,7 @@ a {
   top: calc(50% - 1px);
 }
 .catalog-open .catalog-bottom-header__icon::before {
-  top: calc(50% - 0.5px);
+  top: calc(50% - 0.75px);
   -webkit-transform: rotate(-45deg);
           transform: rotate(-45deg);
   background-color: #fff;
@@ -1552,7 +1553,7 @@ a {
 .catalog-open .catalog-bottom-header__icon::after {
   content: "";
   background-color: #fff;
-  bottom: calc(50% - 1.4px);
+  bottom: calc(50% - 0.75px);
   -webkit-transform: rotate(45deg);
           transform: rotate(45deg);
 }
