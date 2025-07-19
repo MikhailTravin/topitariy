@@ -1374,6 +1374,7 @@ a {
 }
 @media (max-width: 1250px) {
   .bottom-header__icon {
+    cursor: pointer;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -1466,6 +1467,7 @@ a {
   }
 }
 .catalog-bottom-header__titles {
+  cursor: pointer;
   border-radius: 40px;
   background-color: #e5f2d6;
   display: -webkit-box;
@@ -1491,6 +1493,7 @@ a {
   }
 }
 .catalog-bottom-header__icons {
+  cursor: pointer;
   width: 16px;
   height: 16px;
   border-radius: 50%;

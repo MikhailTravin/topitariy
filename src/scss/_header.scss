@@ -313,6 +313,7 @@
   &__icon {
     display: none;
     @media (max-width: 1250px) {
+      cursor: pointer;
       display: flex;
       width: 44px;
       height: 44px;
@@ -386,6 +387,7 @@
   }
   // .catalog-bottom-header__titles
   &__titles {
+    cursor: pointer;
     border-radius: 40px;
     background-color: #e5f2d6;
     display: flex;
@@ -405,6 +407,7 @@
   // .catalog-bottom-header__icons
 
   &__icons {
+    cursor: pointer;
     width: 16px;
     height: 16px;
     border-radius: 50%;

@@ -153,10 +153,19 @@ function uniqArray(array) {
 
 //Меню
 const iconMenu = document.querySelector('.bottom-header__icon');
+const headerTop = document.querySelector('.header__top');
 if (iconMenu) {
   iconMenu.addEventListener("click", function (e) {
     e.stopPropagation();
     document.documentElement.classList.toggle("menu-open");
+  });
+  document.addEventListener('click', function (e) {
+    const isClickInsideHeaderTop = headerTop && headerTop.contains(e.target);
+    const isClickOnMenuIcon = e.target === iconMenu || iconMenu.contains(e.target);
+
+    if (!isClickInsideHeaderTop && !isClickOnMenuIcon) {
+      document.documentElement.classList.remove("menu-open");
+    }
   });
 }
 
