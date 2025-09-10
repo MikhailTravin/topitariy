@@ -372,57 +372,69 @@ class SelectConstructor {
       }
     }
   }
+
   getSelectClass(className) {
     return `.${className}`;
   }
+
   getSelectElement(selectItem, className) {
     return {
       originalSelect: selectItem.querySelector('select'),
       selectElement: selectItem.querySelector(this.getSelectClass(className)),
     }
   }
+
   selectsInit(selectItems) {
     selectItems.forEach((originalSelect, index) => {
       this.selectInit(originalSelect, index + 1);
     });
+
     document.addEventListener('click', function (e) {
       this.selectsActions(e);
     }.bind(this));
+
     document.addEventListener('keydown', function (e) {
       this.selectsActions(e);
     }.bind(this));
+
     document.addEventListener('focusin', function (e) {
       this.selectsActions(e);
     }.bind(this));
+
     document.addEventListener('focusout', function (e) {
       this.selectsActions(e);
     }.bind(this));
   }
+
   selectInit(originalSelect, index) {
     const _this = this;
     let selectItem = document.createElement("div");
     selectItem.classList.add(this.selectClasses.classSelect);
+
     // Виводимо оболонку перед оригінальним селектом
     originalSelect.parentNode.insertBefore(selectItem, originalSelect);
+
     // Поміщаємо оригінальний селект в оболонку
     selectItem.appendChild(originalSelect);
+
     // Приховуємо оригінальний селект
     originalSelect.hidden = true;
+
     // Привласнюємо унікальний ID
     index ? originalSelect.dataset.id = index : null;
 
     // Робота з плейсхолдером
     if (this.getSelectPlaceholder(originalSelect)) {
-      // Запам'ятовуємо плейсхолдер
       originalSelect.dataset.placeholder = this.getSelectPlaceholder(originalSelect).value;
-      // Якщо увімкнено режим label
       if (this.getSelectPlaceholder(originalSelect).label.show) {
         const selectItemTitle = this.getSelectElement(selectItem, this.selectClasses.classSelectTitle).selectElement;
         selectItemTitle.insertAdjacentHTML('afterbegin', `<span class="${this.selectClasses.classSelectLabel}">${this.getSelectPlaceholder(originalSelect).label.text ? this.getSelectPlaceholder(originalSelect).label.text : this.getSelectPlaceholder(originalSelect).value}</span>`);
       }
     }
+
     // Конструктор основних елементів
     selectItem.insertAdjacentHTML('beforeend', `<div class="${this.selectClasses.classSelectBody}"><div hidden class="${this.selectClasses.classSelectOptions}"></div></div>`);
+
     // Запускаємо конструктор псевдоселекту
     this.selectBuild(originalSelect);
 
@@ -433,49 +445,58 @@ class SelectConstructor {
     // Подія при зміні оригінального select
     originalSelect.addEventListener('change', function (e) {
       _this.selectChange(e);
+
+      // Триггерим кастомное событие для фильтрации
+      const filterEvent = new CustomEvent('filterChange', {
+        detail: {
+          name: originalSelect.name,
+          value: originalSelect.value
+        }
+      });
+      document.dispatchEvent(filterEvent);
     });
   }
+
   // Конструктор псевдоселекту
   selectBuild(originalSelect) {
     const selectItem = originalSelect.parentElement;
-    // Додаємо ID селекту
     selectItem.dataset.id = originalSelect.dataset.id;
-    // Отримуємо клас оригінального селекту, створюємо модифікатор та додаємо його
+
     originalSelect.dataset.classModif ? selectItem.classList.add(`select_${originalSelect.dataset.classModif}`) : null;
-    // Якщо множинний вибір, додаємо клас
+
     originalSelect.multiple ? selectItem.classList.add(this.selectClasses.classSelectMultiple) : selectItem.classList.remove(this.selectClasses.classSelectMultiple);
-    // Cтилізація елементів під checkbox (тільки для multiple)
+
     originalSelect.hasAttribute('data-checkbox') && originalSelect.multiple ? selectItem.classList.add(this.selectClasses.classSelectCheckBox) : selectItem.classList.remove(this.selectClasses.classSelectCheckBox);
-    // Сеттер значення заголовка селекту
+
     this.setSelectTitleValue(selectItem, originalSelect);
-    // Сеттер елементів списку (options)
+
     this.setOptions(selectItem, originalSelect);
-    // Якщо увімкнено опцію пошуку data-search, запускаємо обробник
+
     originalSelect.hasAttribute('data-search') ? this.searchActions(selectItem) : null;
-    // Якщо вказано налаштування data-open, відкриваємо селект
+
     originalSelect.hasAttribute('data-open') ? this.selectAction(selectItem) : null;
-    // Обробник disabled
+
     this.selectDisabled(selectItem, originalSelect);
   }
+
   // Функція реакцій на події
   selectsActions(e) {
     const targetElement = e.target;
     const targetType = e.type;
+
     if (targetElement.closest(this.getSelectClass(this.selectClasses.classSelect)) || targetElement.closest(this.getSelectClass(this.selectClasses.classSelectTag))) {
       const selectItem = targetElement.closest('.select') ? targetElement.closest('.select') : document.querySelector(`.${this.selectClasses.classSelect}[data-id="${targetElement.closest(this.getSelectClass(this.selectClasses.classSelectTag)).dataset.selectId}"]`);
       const originalSelect = this.getSelectElement(selectItem).originalSelect;
+
       if (targetType === 'click') {
         if (!originalSelect.disabled) {
           if (targetElement.closest(this.getSelectClass(this.selectClasses.classSelectTag))) {
-            // Обробка кліка на тег
             const targetTag = targetElement.closest(this.getSelectClass(this.selectClasses.classSelectTag));
             const optionItem = document.querySelector(`.${this.selectClasses.classSelect}[data-id="${targetTag.dataset.selectId}"] .select__option[data-value="${targetTag.dataset.value}"]`);
             this.optionAction(selectItem, originalSelect, optionItem);
           } else if (targetElement.closest(this.getSelectClass(this.selectClasses.classSelectTitle))) {
-            // Обробка кліка на заголовок селекту
             this.selectAction(selectItem);
           } else if (targetElement.closest(this.getSelectClass(this.selectClasses.classSelectOption))) {
-            // Обробка кліка на елемент селекту
             const optionItem = targetElement.closest(this.getSelectClass(this.selectClasses.classSelectOption));
             this.optionAction(selectItem, originalSelect, optionItem);
           }
@@ -491,6 +512,7 @@ class SelectConstructor {
       this.selectsСlose();
     }
   }
+
   selectsСlose(selectOneGroup) {
     const selectsGroup = selectOneGroup ? selectOneGroup : document;
     const selectActiveItems = selectsGroup.querySelectorAll(`${this.getSelectClass(this.selectClasses.classSelect)}${this.getSelectClass(this.selectClasses.classSelectOpen)}`);
@@ -500,7 +522,7 @@ class SelectConstructor {
       });
     }
   }
-  // Функція закриття конкретного селекту
+
   selectСlose(selectItem) {
     const originalSelect = this.getSelectElement(selectItem).originalSelect;
     const selectOptions = this.getSelectElement(selectItem, this.selectClasses.classSelectOptions).selectElement;
@@ -512,15 +534,13 @@ class SelectConstructor {
       }, originalSelect.dataset.speed);
     }
   }
+
   selectAction(selectItem) {
     const originalSelect = this.getSelectElement(selectItem).originalSelect;
     const selectOptions = this.getSelectElement(selectItem, this.selectClasses.classSelectOptions).selectElement;
     const selectOpenzIndex = originalSelect.dataset.zIndex ? originalSelect.dataset.zIndex : 3;
 
-    // Визначаємо, де видобразити випадаючий список
     this.setOptionsPosition(selectItem);
-
-    // Закриваємо всі інші відкриті селекти перед відкриттям поточного
     this.selectsСlose();
 
     setTimeout(() => {
@@ -538,7 +558,7 @@ class SelectConstructor {
       }
     }, 0);
   }
-  // Сеттер значення заголовка селекту
+
   setSelectTitleValue(selectItem, originalSelect) {
     const selectItemBody = this.getSelectElement(selectItem, this.selectClasses.classSelectBody).selectElement;
     const selectItemTitle = this.getSelectElement(selectItem, this.selectClasses.classSelectTitle).selectElement;
@@ -546,45 +566,38 @@ class SelectConstructor {
     selectItemBody.insertAdjacentHTML("afterbegin", this.getSelectTitleValue(selectItem, originalSelect));
     originalSelect.hasAttribute('data-search') ? this.searchActions(selectItem) : null;
   }
-  // Конструктор значення заголовка
+
   getSelectTitleValue(selectItem, originalSelect) {
-    // Отримуємо вибрані текстові значення
     let selectTitleValue = this.getSelectedOptionsData(originalSelect, 2).html;
-    // Обробка значень мультивибору
-    // Якщо увімкнено режим тегів (вказано налаштування data-tags)
+
     if (originalSelect.multiple && originalSelect.hasAttribute('data-tags')) {
       selectTitleValue = this.getSelectedOptionsData(originalSelect).elements.map(option => `<span role="button" data-select-id="${selectItem.dataset.id}" data-value="${option.value}" class="_select-tag">${this.getSelectElementContent(option)}</span>`).join('');
-      // Якщо виведення тегів у зовнішній блок
       if (originalSelect.dataset.tags && document.querySelector(originalSelect.dataset.tags)) {
         document.querySelector(originalSelect.dataset.tags).innerHTML = selectTitleValue;
         if (originalSelect.hasAttribute('data-search')) selectTitleValue = false;
       }
     }
-    // Значення або плейсхолдер
+
     selectTitleValue = selectTitleValue.length ? selectTitleValue : (originalSelect.dataset.placeholder ? originalSelect.dataset.placeholder : '');
-    // Якщо увімкнено режим pseudo
+
     let pseudoAttribute = '';
     let pseudoAttributeClass = '';
     if (originalSelect.hasAttribute('data-pseudo-label')) {
       pseudoAttribute = originalSelect.dataset.pseudoLabel ? ` data-pseudo-label="${originalSelect.dataset.pseudoLabel}"` : ` data-pseudo-label="Заповніть атрибут"`;
       pseudoAttributeClass = ` ${this.selectClasses.classSelectPseudoLabel}`;
     }
-    // Якщо є значення, додаємо клас
+
     this.getSelectedOptionsData(originalSelect).values.length ? selectItem.classList.add(this.selectClasses.classSelectActive) : selectItem.classList.remove(this.selectClasses.classSelectActive);
-    // Повертаємо поле введення для пошуку чи текст
+
     if (originalSelect.hasAttribute('data-search')) {
-      // Виводимо поле введення для пошуку
       return `<div class="${this.selectClasses.classSelectTitle}"><span${pseudoAttribute} class="${this.selectClasses.classSelectValue}"><input autocomplete="off" type="text" placeholder="${selectTitleValue}" data-placeholder="${selectTitleValue}" class="${this.selectClasses.classSelectInput}"></span></div>`;
     } else {
-      // Якщо вибрано елемент зі своїм класом
       const customClass = this.getSelectedOptionsData(originalSelect).elements.length && this.getSelectedOptionsData(originalSelect).elements[0].dataset.class ? ` ${this.getSelectedOptionsData(originalSelect).elements[0].dataset.class}` : '';
-      // Виводимо текстове значення
       return `<button type="button" class="${this.selectClasses.classSelectTitle}"><span${pseudoAttribute} class="${this.selectClasses.classSelectValue}${pseudoAttributeClass}"><span class="${this.selectClasses.classSelectContent}${customClass}">${selectTitleValue}</span></span></button>`;
     }
   }
-  // Конструктор даних для значення заголовка
+
   getSelectElementContent(selectOption) {
-    // Якщо для елемента вказано виведення картинки чи тексту, перебудовуємо конструкцію
     const selectOptionData = selectOption.dataset.asset ? `${selectOption.dataset.asset}` : '';
     const selectOptionDataHTML = selectOptionData.indexOf('img') >= 0 ? `<img src="${selectOptionData}" alt="">` : selectOptionData;
     let selectOptionContentHTML = ``;
@@ -598,7 +611,7 @@ class SelectConstructor {
     selectOptionContentHTML += selectOptionData ? `</span>` : '';
     return selectOptionContentHTML;
   }
-  // Отримання даних плейсхолдера
+
   getSelectPlaceholder(originalSelect) {
     const selectPlaceholder = Array.from(originalSelect.options).find(option => !option.value);
     if (selectPlaceholder) {
@@ -612,16 +625,12 @@ class SelectConstructor {
       }
     }
   }
-  // Отримання даних із вибраних елементів
+
   getSelectedOptionsData(originalSelect, type) {
-    //Отримуємо всі вибрані об'єкти з select
     let selectedOptions = [];
     if (originalSelect.multiple) {
-      // Якщо мультивибір
-      // Забираємо плейсхолдер, отримуємо решту вибраних елементів
       selectedOptions = Array.from(originalSelect.options).filter(option => option.value).filter(option => option.selected);
     } else {
-      // Якщо одиничний вибір
       selectedOptions.push(originalSelect.options[originalSelect.selectedIndex]);
     }
     return {
@@ -630,55 +639,49 @@ class SelectConstructor {
       html: selectedOptions.map(option => this.getSelectElementContent(option))
     }
   }
-  // Конструктор елементів списку
+
   getOptions(originalSelect) {
-    // Налаштування скролла елементів
     const selectOptionsScroll = originalSelect.hasAttribute('data-scroll') ? `data-simplebar` : '';
     const customMaxHeightValue = +originalSelect.dataset.scroll ? +originalSelect.dataset.scroll : null;
-    // Отримуємо елементи списку
+
     let selectOptions = Array.from(originalSelect.options);
     if (selectOptions.length > 0) {
       let selectOptionsHTML = ``;
-      // Якщо вказано налаштування data-show, показуємо плейсхолдер у списку
+
       if ((this.getSelectPlaceholder(originalSelect) && !this.getSelectPlaceholder(originalSelect).show) || originalSelect.multiple) {
         selectOptions = selectOptions.filter(option => option.value);
       }
-      // Будуємо та виводимо основну конструкцію
+
       selectOptionsHTML += `<div ${selectOptionsScroll} ${selectOptionsScroll ? `style="max-height: ${customMaxHeightValue}px"` : ''} class="${this.selectClasses.classSelectOptionsScroll}">`;
+
       selectOptions.forEach(selectOption => {
-        // Отримуємо конструкцію конкретного елемента списку
         selectOptionsHTML += this.getOption(selectOption, originalSelect);
       });
+
       selectOptionsHTML += `</div>`;
       return selectOptionsHTML;
     }
   }
-  // Конструктор конкретного елемента списку
+
   getOption(selectOption, originalSelect) {
-    // Якщо елемент вибрано та увімкнено режим мультивибору, додаємо клас
     const selectOptionSelected = selectOption.selected && originalSelect.multiple ? ` ${this.selectClasses.classSelectOptionSelected}` : '';
-    // Якщо елемент вибраний і немає налаштування data-show-selected, приховуємо елемент
     const selectOptionHide = selectOption.selected && !originalSelect.hasAttribute('data-show-selected') && !originalSelect.multiple ? `hidden` : ``;
-    // Якщо для елемента зазначений клас додаємо
     const selectOptionClass = selectOption.dataset.class ? ` ${selectOption.dataset.class}` : '';
-    // Якщо вказано режим посилання
     const selectOptionLink = selectOption.dataset.href ? selectOption.dataset.href : false;
     const selectOptionLinkTarget = selectOption.hasAttribute('data-href-blank') ? `target="_blank"` : '';
-    // Будуємо та повертаємо конструкцію елемента
+
     let selectOptionHTML = ``;
     selectOptionHTML += selectOptionLink ? `<a ${selectOptionLinkTarget} ${selectOptionHide} href="${selectOptionLink}" data-value="${selectOption.value}" class="${this.selectClasses.classSelectOption}${selectOptionClass}${selectOptionSelected}">` : `<button ${selectOptionHide} class="${this.selectClasses.classSelectOption}${selectOptionClass}${selectOptionSelected}" data-value="${selectOption.value}" type="button">`;
     selectOptionHTML += this.getSelectElementContent(selectOption);
     selectOptionHTML += selectOptionLink ? `</a>` : `</button>`;
     return selectOptionHTML;
   }
-  // Сеттер елементів списку (options)
+
   setOptions(selectItem, originalSelect) {
-    // Отримуємо об'єкт тіла псевдоселекту
     const selectItemOptions = this.getSelectElement(selectItem, this.selectClasses.classSelectOptions).selectElement;
-    // Запускаємо конструктор елементів списку (options) та додаємо в тіло псевдоселекту
     selectItemOptions.innerHTML = this.getOptions(originalSelect);
   }
-  // Визначаємо, де видобразити випадаючий список
+
   setOptionsPosition(selectItem) {
     const originalSelect = this.getSelectElement(selectItem).originalSelect;
     const selectOptions = this.getSelectElement(selectItem, this.selectClasses.classSelectOptions).selectElement;
@@ -715,57 +718,59 @@ class SelectConstructor {
       }, +originalSelect.dataset.speed);
     }
   }
-  // Обробник кліку на пункт списку
+
+  // ОБНОВЛЕННЫЙ МЕТОД - правильная работа со скрытыми select
   optionAction(selectItem, originalSelect, optionItem) {
     const selectOptions = selectItem.querySelector(`${this.getSelectClass(this.selectClasses.classSelectOptions)}`);
     if (!selectOptions.classList.contains('_slide')) {
-      if (originalSelect.multiple) { // Якщо мультивибір
-        // Виділяємо класом елемент
+      if (originalSelect.multiple) {
         optionItem.classList.toggle(this.selectClasses.classSelectOptionSelected);
-        // Очищаємо вибрані елементи
         const originalSelectSelectedItems = this.getSelectedOptionsData(originalSelect).elements;
         originalSelectSelectedItems.forEach(originalSelectSelectedItem => {
           originalSelectSelectedItem.removeAttribute('selected');
         });
-        // Вибираємо елементи 
+
         const selectSelectedItems = selectItem.querySelectorAll(this.getSelectClass(this.selectClasses.classSelectOptionSelected));
         selectSelectedItems.forEach(selectSelectedItems => {
           originalSelect.querySelector(`option[value = "${selectSelectedItems.dataset.value}"]`).setAttribute('selected', 'selected');
         });
-      } else { // Якщо одиничний вибір
-        // Якщо не вказано налаштування data-show-selected, приховуємо вибраний елемент
+      } else {
         if (!originalSelect.hasAttribute('data-show-selected')) {
           setTimeout(() => {
-            // Спочатку все показати
             if (selectItem.querySelector(`${this.getSelectClass(this.selectClasses.classSelectOption)}[hidden]`)) {
               selectItem.querySelector(`${this.getSelectClass(this.selectClasses.classSelectOption)}[hidden]`).hidden = false;
             }
-            // Приховуємо вибрану
             optionItem.hidden = true;
           }, this.config.speed);
         }
-        originalSelect.value = optionItem.hasAttribute('data-value') ? optionItem.dataset.value : optionItem.textContent;
+
+        // Устанавливаем значение в оригинальный select
+        const newValue = optionItem.hasAttribute('data-value') ? optionItem.dataset.value : optionItem.textContent;
+        originalSelect.value = newValue;
+
+        // Явно триггерим событие change на оригинальном select
+        const changeEvent = new Event('change', { bubbles: true });
+        originalSelect.dispatchEvent(changeEvent);
+
         this.selectAction(selectItem);
       }
-      //Оновлюємо заголовок селекту
+
       this.setSelectTitleValue(selectItem, originalSelect);
-      // Викликаємо реакцію на зміну селекту
       this.setSelectChange(originalSelect);
     }
   }
-  // Реакція на зміну оригінального select
+
   selectChange(e) {
     const originalSelect = e.target;
     this.selectBuild(originalSelect);
     this.setSelectChange(originalSelect);
   }
-  // Обробник зміни у селекті
+
   setSelectChange(originalSelect) {
-    // Миттєва валідація селекту
     if (originalSelect.hasAttribute('data-validate')) {
       formValidate.validateInput(originalSelect);
     }
-    // При зміні селекту надсилаємо форму
+
     if (originalSelect.hasAttribute('data-submit') && originalSelect.value) {
       let tempButton = document.createElement("button");
       tempButton.type = "submit";
@@ -773,11 +778,11 @@ class SelectConstructor {
       tempButton.click();
       tempButton.remove();
     }
+
     const selectItem = originalSelect.parentElement;
-    // Виклик коллбек функції
     this.selectCallback(selectItem, originalSelect);
   }
-  // Обробник disabled
+
   selectDisabled(selectItem, originalSelect) {
     if (originalSelect.disabled) {
       selectItem.classList.add(this.selectClasses.classSelectDisabled);
@@ -787,13 +792,14 @@ class SelectConstructor {
       this.getSelectElement(selectItem, this.selectClasses.classSelectTitle).selectElement.disabled = false;
     }
   }
-  // Обробник пошуку за елементами списку
+
   searchActions(selectItem) {
     const originalSelect = this.getSelectElement(selectItem).originalSelect;
     const selectInput = this.getSelectElement(selectItem, this.selectClasses.classSelectInput).selectElement;
     const selectOptions = this.getSelectElement(selectItem, this.selectClasses.classSelectOptions).selectElement;
     const selectOptionsItems = selectOptions.querySelectorAll(`.${this.selectClasses.classSelectOption} `);
     const _this = this;
+
     selectInput.addEventListener("input", function () {
       selectOptionsItems.forEach(selectOptionsItem => {
         if (selectOptionsItem.textContent.toUpperCase().includes(selectInput.value.toUpperCase())) {
@@ -805,6 +811,7 @@ class SelectConstructor {
       selectOptions.hidden === true ? _this.selectAction(selectItem) : null;
     });
   }
+
   selectCallback(selectItem, originalSelect) {
     document.dispatchEvent(new CustomEvent("selectCallback", {
       detail: {
@@ -1082,7 +1089,7 @@ function rangeInit() {
       format: wNumb({
         decimals: 0,
         thousand: ' ',
-        suffix: ' р' // Добавляем "р" как суффикс
+        suffix: ' р'
       })
     });
 
@@ -1091,30 +1098,62 @@ function rangeInit() {
 
     // Функция для очистки значения от лишних символов
     function parseInput(value) {
-      return value.replace(/\D/g, ''); // Оставляем только цифры
+      return parseInt(value.replace(/\D/g, '')) || 0; // Оставляем только цифры
+    }
+
+    // Функция для форматирования числа
+    function formatNumber(value) {
+      return new Intl.NumberFormat('ru-RU').format(value) + ' р';
     }
 
     // Связь полей ввода со слайдером
     priceStart.addEventListener('change', function () {
       const value = parseInput(this.value);
       ratingCalc.noUiSlider.set([value, null]);
+      // Обновляем отформатированное значение
+      this.value = formatNumber(value);
     });
 
     priceEnd.addEventListener('change', function () {
       const value = parseInput(this.value);
       ratingCalc.noUiSlider.set([null, value]);
+      // Обновляем отформатированное значение
+      this.value = formatNumber(value);
     });
 
     // Обновляем значения инпутов при движении слайдера
     ratingCalc.noUiSlider.on('update', function (values, handle) {
-      const numericValue = values[handle].replace(/\s/g, '').replace('р', '').trim();
+      // Получаем числовые значения для фильтрации
+      const numericValues = values.map(val => parseInput(val));
 
+      // Обновляем скрытые поля для фильтрации (если они есть)
+      const hiddenPriceStart = document.querySelector('input[name="price_min"]');
+      const hiddenPriceEnd = document.querySelector('input[name="price_max"]');
+
+      if (hiddenPriceStart && hiddenPriceEnd) {
+        hiddenPriceStart.value = numericValues[0];
+        hiddenPriceEnd.value = numericValues[1];
+      }
+
+      // Обновляем видимые поля с форматированием
       if (handle) {
         priceEnd.value = values[handle];
       } else {
         priceStart.value = values[handle];
       }
+
+      // Триггерим событие изменения для обновления фильтрации
+      const event = new Event('change', { bubbles: true });
+      if (hiddenPriceStart && hiddenPriceEnd) {
+        hiddenPriceStart.dispatchEvent(event);
+        hiddenPriceEnd.dispatchEvent(event);
+      }
     });
+
+    // Инициализация начальных значений
+    const initialValues = ratingCalc.noUiSlider.get();
+    priceStart.value = formatNumber(parseInput(initialValues[0]));
+    priceEnd.value = formatNumber(parseInput(initialValues[1]));
   }
 }
 rangeInit();
