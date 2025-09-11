@@ -1080,16 +1080,14 @@ function rangeInit() {
   const ratingCalc = document.querySelector('.bottom-tabs__range');
   if (ratingCalc) {
     noUiSlider.create(ratingCalc, {
-      start: [80000, 7000000],
+      start: [0, 70000000],
       connect: true,
       range: {
-        'min': [80000],
+        'min': [0],
         'max': [10000000]
       },
       format: wNumb({
         decimals: 0,
-        thousand: ' ',
-        suffix: ' р'
       })
     });
 
@@ -1101,24 +1099,24 @@ function rangeInit() {
       return parseInt(value.replace(/\D/g, '')) || 0; // Оставляем только цифры
     }
 
-    // Функция для форматирования числа
+    // Функция для форматирования числа (без пробелов)
     function formatNumber(value) {
-      return new Intl.NumberFormat('ru-RU').format(value) + ' р';
+      return value.toString(); // Просто возвращаем число как строку без форматирования
     }
 
     // Связь полей ввода со слайдером
     priceStart.addEventListener('change', function () {
       const value = parseInput(this.value);
       ratingCalc.noUiSlider.set([value, null]);
-      // Обновляем отформатированное значение
-      this.value = formatNumber(value);
+      // Обновляем значение без форматирования
+      this.value = value;
     });
 
     priceEnd.addEventListener('change', function () {
       const value = parseInput(this.value);
       ratingCalc.noUiSlider.set([null, value]);
-      // Обновляем отформатированное значение
-      this.value = formatNumber(value);
+      // Обновляем значение без форматирования
+      this.value = value;
     });
 
     // Обновляем значения инпутов при движении слайдера
@@ -1126,7 +1124,6 @@ function rangeInit() {
       // Получаем числовые значения для фильтрации
       const numericValues = values.map(val => parseInput(val));
 
-      // Обновляем скрытые поля для фильтрации (если они есть)
       const hiddenPriceStart = document.querySelector('input[name="price_min"]');
       const hiddenPriceEnd = document.querySelector('input[name="price_max"]');
 
@@ -1135,14 +1132,12 @@ function rangeInit() {
         hiddenPriceEnd.value = numericValues[1];
       }
 
-      // Обновляем видимые поля с форматированием
       if (handle) {
-        priceEnd.value = values[handle];
+        priceEnd.value = numericValues[handle];
       } else {
-        priceStart.value = values[handle];
+        priceStart.value = numericValues[handle];
       }
 
-      // Триггерим событие изменения для обновления фильтрации
       const event = new Event('change', { bubbles: true });
       if (hiddenPriceStart && hiddenPriceEnd) {
         hiddenPriceStart.dispatchEvent(event);
@@ -1150,10 +1145,9 @@ function rangeInit() {
       }
     });
 
-    // Инициализация начальных значений
     const initialValues = ratingCalc.noUiSlider.get();
-    priceStart.value = formatNumber(parseInput(initialValues[0]));
-    priceEnd.value = formatNumber(parseInput(initialValues[1]));
+    priceStart.value = parseInput(initialValues[0]);
+    priceEnd.value = parseInput(initialValues[1]);
   }
 }
 rangeInit();
